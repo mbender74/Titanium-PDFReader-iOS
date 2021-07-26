@@ -1,1 +1,1 @@
-PDFReader
+Titanium PDFReader Module
