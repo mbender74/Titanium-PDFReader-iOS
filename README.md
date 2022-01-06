@@ -24,7 +24,7 @@ var pdfView = pdfReaderModule.createReader({
 	labeltemplate:'Page'+' %@ '+'from'+' %lu',
 	clipMode: Titanium.UI.iOS.CLIP_MODE_DISABLED,
 	backgroundColor:'white',
-	pdf:Ti.Filesystem.getFile( Ti.Filesystem.applicationDataDirectory , "test.pdf" ).resolve(),
+	pdf:Ti.Filesystem.getFile( Ti.Filesystem.resourcesDirectory , "test.pdf" ).resolve(),
 });
 
 pdfView.addEventListener('searchresult', function (e) {
