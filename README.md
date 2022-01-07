@@ -1,11 +1,11 @@
 # PDFReader for iOS (based on Apple PDFKit)
-## PDF-Reader-View module for Appcelerator Titanium
+## PDF-Reader-View module for Titanium SDK
 
 <img src="./demo.gif" width="293" height="634" alt="Example" />
 
 
 
-Simple iOS View module for Appcelerator Titanium that can display PDF files with thumnail slider and serach function
+Simple iOS PDF-Reader module for Titanium that can display PDF files with thumnail slider and search function
 
 ### Usage
 
