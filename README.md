@@ -15,9 +15,6 @@ Simple iOS View module for Appcelerator Titanium that can display PDF files with
 </modules>
 ```
 
-```xml
-```
-or
 ```javascript
 var win = Ti.UI.createWindow({
 	backgroundColor: '#fff'
