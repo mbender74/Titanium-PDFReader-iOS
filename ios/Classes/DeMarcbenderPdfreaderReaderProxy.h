@@ -9,4 +9,6 @@
 
 @interface DeMarcbenderPdfreaderReaderProxy : TiViewProxy
 - (void)search:(id __nullable)value;
+- (void)resetSearch:(id __nullable)value;
+
 @end

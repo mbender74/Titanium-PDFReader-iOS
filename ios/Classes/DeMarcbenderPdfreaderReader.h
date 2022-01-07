@@ -5,31 +5,32 @@
  * Please see the LICENSE included with this distribution for details.
  */
 #import "TiUIView.h"
+#import "TiViewProxy.h"
 #import <PDFKit/PDFKit.h>
 #import <UIKit/UIKit.h>
 @protocol DeMarcbenderPdfreaderReaderDelegate;
 
-@interface DeMarcbenderPdfreaderReader : TiUIView < PDFDocumentDelegate > {
-
-
-@private
+@interface DeMarcbenderPdfreaderReader : TiUIView < PDFViewDelegate, PDFDocumentDelegate > {
     PDFView *readerView;
     PDFThumbnailView *thumbnailView;
     UILabel *pageNumberLabel;
     UIView *pageNumberContainer;
     UIView *bottomContainer;
     int thumbnailsize;
+    NSDate *lastHideTime;
+    NSString *labeltemplate;
+    BOOL initDone;
+    int resultCount;
+    NSMutableArray<PDFSelection *> *searchResultArray;
 }
-@property int *resultCount;
 
 @property (strong, nonatomic) PDFDocument *pdfDocument;
-@property (strong, nonatomic) NSMutableArray<PDFSelection *> *searchResultArray;
 
 //
 //-(void)setPdf_:(id)args;
 - (void)search:(NSString*)searchText;
 -(void)toggleBottomView;
 -(void)showHideBottomView;
-
+- (void)resetSearch;
 
 @end

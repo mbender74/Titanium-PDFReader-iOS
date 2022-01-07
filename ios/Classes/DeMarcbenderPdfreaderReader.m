@@ -10,35 +10,25 @@
 #import <UIKit/UIKit.h>
 
 @implementation DeMarcbenderPdfreaderReader
-NSDate *lastHideTime;
-NSString *labeltemplate;
 
 -(void)initializeState
 {
-    [super initializeState];
     
     if (self)
     {
+        initDone = NO;
+
         NSString *filePath = [TiUtils stringValue:[self.proxy valueForKey:@"pdf"]];
-        self.searchResultArray = [[NSMutableArray alloc] init];
+        searchResultArray = [[NSMutableArray alloc] init];
        labeltemplate = [TiUtils stringValue:[self.proxy valueForKey:@"labeltemplate"]];
 
         if(!labeltemplate){
             labeltemplate = @"Page %@ of %lu";
         }
-        
 
-        int width = [TiUtils intValue:[self.proxy valueForKey:@"width"]];
-        int height = [TiUtils intValue:[self.proxy valueForKey:@"height"]];
+        resultCount = 0;
         
-//        NSLog(@"[INFO] width  %i", width);
-//        NSLog(@"[INFO] height  %i", height);
-//
-//        NSLog(@"[INFO] %@ filePath",filePath);
-
-        self.resultCount = 0;
-        
-        if (@available(iOS 11.0, *)) {
+       // if (@available(iOS 11.0, *)) {
             
             NSDictionary *dictionary = @{
                    @"interPageSpacing" : @50
@@ -46,194 +36,187 @@ NSString *labeltemplate;
             CGRect currentFrame = self.frame;
 //            int frameHeight = currentFrame.size.height;
 //            int frameWidth = currentFrame.size.width;
-            int frameHeight = height;
-            int frameWidth = width;
+           
 //            readerView = [[PDFView alloc] initWithFrame: self.bounds];
 //            NSLog(@"[INFO] currentFrame  %i", frameHeight);
 //            NSLog(@"[INFO] currentFrame  %i", frameWidth);
 
  //           readerView = [[PDFView alloc] initWithFrame:[self frame]];
 
-            readerView = [[PDFView alloc] initWithFrame:CGRectMake(0, 0, width, height)];
             
-
-            UIEdgeInsets pageInsets = UIEdgeInsetsMake(0, 0, 200, 0);
             
+            readerView = [[PDFView alloc] init];
 
+            UIEdgeInsets pageInsets = UIEdgeInsetsMake(0, 0, 100, 0);
+            
+            
+          // readerView.autoresizingMask = UIViewAutoresizingFlexibleTopMargin|UIViewAutoresizingFlexibleBottomMargin;
+            
+          //  [readerView setAutoresizingMask:UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleTopMargin|UIViewAutoresizingFlexibleBottomMargin];
 
             
-           readerView.autoresizingMask = UIViewAutoresizingFlexibleTopMargin|UIViewAutoresizingFlexibleBottomMargin;
-            
+            NSDictionary* options = @{ UIPageViewControllerOptionInterPageSpacingKey : [NSNumber numberWithFloat:10.0f]};
 
-            readerView.translatesAutoresizingMaskIntoConstraints = false;
-            [readerView usePageViewController:YES withViewOptions:nil];
-
-
+            readerView.translatesAutoresizingMaskIntoConstraints = NO;
+            [readerView usePageViewController:YES withViewOptions:options];
+           // readerView.clipsToBounds = YES;
 
             readerView.displayDirection = kPDFDisplayDirectionHorizontal;
             readerView.displayMode = kPDFDisplaySinglePage;
-          //  [readerView zoomIn:self];
+    //        [readerView zoomIn:self];
 //            [readerView setDisplaysPageBreaks:YES];
 
-            
             readerView.backgroundColor=[UIColor clearColor];
 //            [readerView zoomIn:self];
             readerView.document = [[PDFDocument alloc]initWithURL:[NSURL fileURLWithPath:filePath]];
             self.pdfDocument = readerView.document;
 //            readerView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleTopMargin|UIViewAutoresizingFlexibleBottomMargin;
-            readerView.document.delegate = self;
-            readerView.maxScaleFactor = 4.0;
+            [readerView.document allowsPrinting];
+
+            readerView.maxScaleFactor = 3.0;
 //            readerView.minScaleFactor = 0.6;
             readerView.minScaleFactor = readerView.scaleFactorForSizeToFit;
-            readerView.autoScales = true;
-            [readerView setDisplaysPageBreaks:YES];
-            [readerView setDisplayBox:kPDFDisplayBoxTrimBox];
-            [readerView setLayoutMargins:pageInsets];
-
-            int thumbnailsize = 40;
-
-            //            thumbnailView = [[PDFThumbnailView alloc] initWithFrame:CGRectMake(0, 0, 500, 500)];
-            
-
-            
-            int bottomFrame = frameHeight - 200;
-            int thumbFrameWidth = frameWidth - 40;
-            int labelLeft = frameWidth / 2;
-            int labelCenterY = bottomFrame - 50;
-            int leading = 1;
-
-            
-            bottomContainer = [[UIView alloc] initWithFrame:CGRectMake(0, bottomFrame, frameWidth, 150)];
-            bottomContainer.autoresizesSubviews = YES;
-            
-            thumbnailView = [[PDFThumbnailView alloc] initWithFrame:CGRectMake(0, 80, frameWidth, 80)];
-            thumbnailView.translatesAutoresizingMaskIntoConstraints = false;
-
-          //  thumbnailView.autoresizingMask = UIViewAutoresizingFlexibleTopMargin;
-        //    thumbnailView.autoresizesSubviews = YES;
-            
-//            thumbnailView.heightAnchor.constraint(equalToConstant: CGFloat(thumbnailSize)),
-//            thumbnailView.leadingAnchor.constraint(equalTo: bottomContainer.leadingAnchor),
-//            thumbnailView.trailingAnchor.constraint(equalTo: bottomContainer.trailingAnchor),
-//            thumbnailView.bottomAnchor.constraint(equalTo: bottomContainer.bottomAnchor)
+            readerView.autoScales = YES;
+          //  [readerView setDisplaysPageBreaks:YES];
+          //  [readerView setDisplayBox:kPDFDisplayBoxTrimBox];
+           // [readerView setLayoutMargins:pageInsets];
             
             
-//            NSLayoutConstraint.activate([
-//                pdfThumbnailView.heightAnchor.constraint(equalToConstant: CGFloat(thumbnailSize)),
-//                pdfThumbnailView.widthAnchor.constraint(equalToConstant: CGFloat(pdfDocument.pageCount*thumbnailSize))
-//            ])
-//
-//            [thumbnailView.leadingAnchor constraintEqualToAnchor:bottomContainer.leadingAnchor].active = YES;
-//            [thumbnailView.trailingAnchor constraintEqualToAnchor:bottomContainer.trailingAnchor].active = YES;
-//            [thumbnailView.bottomAnchor constraintEqualToAnchor:bottomContainer.bottomAnchor constant:10].active = YES;
-//
-            CGFloat scrollwidth = (frameWidth-10);
-            
-//            [thumbnailView.heightAnchor constraintEqualToConstant:60].active = YES;
-//
-//            [thumbnailView.widthAnchor constraintEqualToConstant:scrollwidth].active = YES;
-
-          //  [thumbnailView.leadingAnchor constraintEqualToAnchor:bottomContainer.leadingAnchor].active = YES;
-
-            
-            
-            [thumbnailView setLayoutMode:PDFThumbnailLayoutModeHorizontal];
-            
-//            thumbnailView.thumbnailSize = CGSizeMake(60, 40);
-            [thumbnailView setPDFView:readerView];
-
-            [thumbnailView setThumbnailSize:CGSizeMake(thumbnailsize, 60)];
-            thumbnailView.backgroundColor = [UIColor clearColor];
-
-        
-            
-            
-            
-            
-            pageNumberContainer = [[UIView alloc] initWithFrame:CGRectMake(labelLeft - (180/2), 20, 180, 40)];
-          //  pageNumberContainer.autoresizingMask = UIViewAutoresizingFlexibleTopMargin|UIViewAutoresizingFlexibleWidth;
-           // pageNumberContainer.translatesAutoresizingMaskIntoConstraints = false;
-           // [pageNumberContainer setCenter:CGPointMake(labelLeft, labelCenterY)];
-
-            pageNumberContainer.autoresizesSubviews = NO;
-
-            
-            
-            pageNumberLabel = [[UILabel alloc] init];
-            
-            CGRect currentLabelFrame = pageNumberLabel.frame;
-            currentLabelFrame.size = CGSizeMake(180, 40);
-            pageNumberLabel.frame = currentLabelFrame;
-            pageNumberLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-       
-            pageNumberLabel.translatesAutoresizingMaskIntoConstraints = false;
-
-            
-            CGFloat fontSize = (([UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad) ? 19.0f : 16.0f);
-
-            pageNumberLabel.autoresizesSubviews = NO;
-            pageNumberLabel.userInteractionEnabled = NO;
-            pageNumberLabel.contentMode = UIViewContentModeRedraw;
-            pageNumberLabel.textAlignment = NSTextAlignmentCenter;
-            pageNumberLabel.font = [UIFont systemFontOfSize:fontSize];
-            pageNumberLabel.textColor = [UIColor whiteColor];
-            pageNumberLabel.backgroundColor = [UIColor colorWithWhite:0.24f alpha:0.7f];
-            pageNumberLabel.text = [NSString stringWithFormat:labeltemplate, readerView.currentPage.label, (unsigned long)readerView.document.pageCount];
-          //  [pageNumberLabel sizeToFit];
-           // [pageNumberLabel setCenter:CGPointMake(labelLeft, labelCenterY)];
-            
-//            CGPoint currentLabelCenter = pageNumberLabel.center;
-//            currentLabelCenter.y = labelCenterY;
-//            pageNumberLabel.center = currentLabelCenter;
             
             [self addSubview:readerView];
-            [self addSubview:bottomContainer];
-            [bottomContainer addSubview:thumbnailView];
-            [bottomContainer addSubview:pageNumberContainer];
-//
-//            [self addSubview:thumbnailView];
-//            [self addSubview:pageNumberContainer];
-            [pageNumberContainer addSubview:pageNumberLabel];
-            bottomContainer.hidden = true;
-            
-//            UITapGestureRecognizer *singleTapOne = [[UITapGestureRecognizer alloc] initWithTarget:readerView action:@selector(handleSingleTap:)];
-            
-            UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(toggleBottomView)];
-            [readerView addGestureRecognizer:tap];
-
-            [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(PDFViewPageChangedNotification:) name:PDFViewPageChangedNotification object:readerView];
-
-            
-        } else {
-            // Fallback on earlier versions
-        }
-
-        
-        
-
-        
+       
     }
+    [super initializeState];
+
 }
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
-    if (readerView != nil) {
-        [TiUtils setView:readerView positionRect:bounds];
-   }
+    [super frameSizeChanged:frame bounds:bounds];
+
+    if (!CGRectIsEmpty(bounds)) {
+        if (readerView != nil) {
+            [TiUtils setView:readerView positionRect:bounds];
+
+            
+            if (initDone == NO){
+                initDone = YES;
+                int frameHeight = bounds.size.height;
+                int frameWidth = bounds.size.width;
+                int thumbnailsize = 40;
+                
+                int bottomFrame = frameHeight - 200;
+                int thumbFrameWidth = frameWidth - 40;
+                int labelLeft = frameWidth / 2;
+                int labelCenterY = bottomFrame - 50;
+                int leading = 1;
+
+                
+                bottomContainer = [[UIView alloc] initWithFrame:CGRectMake(bounds.origin.x, bounds.origin.y + bounds.size.height - 100, bounds.size.width, 70)];
+              //  bottomContainer.autoresizesSubviews = YES;
+                
+                thumbnailView = [[PDFThumbnailView alloc] initWithFrame:CGRectMake(0, 0, bottomContainer.frame.size.width, 70)];
+                
+                //thumbnailView = [[PDFThumbnailView alloc]init];
+                thumbnailView.autoresizingMask = UIViewAutoresizingFlexibleTopMargin|UIViewAutoresizingFlexibleBottomMargin |UIViewAutoresizingFlexibleLeftMargin|UIViewAutoresizingFlexibleRightMargin;
+
+                thumbnailView.translatesAutoresizingMaskIntoConstraints = NO;
+                
+                [thumbnailView setLayoutMode:PDFThumbnailLayoutModeHorizontal];
+                [thumbnailView setPDFView:readerView];
+                
+                thumbnailView.backgroundColor = [UIColor clearColor];
+                UIEdgeInsets pageInsets = UIEdgeInsetsMake(0, 10, 0, 10);
+
+                //[thumbnailView setThumbnailSize:CGSizeMake(40, 60)];
+                
+              //  [thumbnailView.leadingAnchor constraintEqualToAnchor:bottomContainer.leadingAnchor].active = YES;
+              //   [thumbnailView.trailingAnchor constraintEqualToAnchor:bottomContainer.trailingAnchor].active = YES;
+              //   [thumbnailView.bottomAnchor constraintEqualToAnchor:bottomContainer.bottomAnchor].active = YES;
+               //  [thumbnailView.heightAnchor constraintEqualToConstant:60].active = YES;
+              //  [thumbnailView.widthAnchor constraintEqualToConstant:((self.pdfDocument.pageCount-1) * 60)].active = YES;
+                thumbnailView.contentInset = pageInsets;
+
+                
+                pageNumberContainer = [[UIView alloc] initWithFrame:CGRectMake((bounds.origin.x + (bounds.size.width/2))-(180/2), (bottomContainer.frame.origin.y - 60), 180, 40)];
+                pageNumberContainer.autoresizesSubviews = YES;
+                
+                pageNumberLabel = [[UILabel alloc] init];
+                
+                CGRect currentLabelFrame = CGRectMake(0, 0, pageNumberContainer.frame.size.width, pageNumberContainer.frame.size.height);
+                pageNumberLabel.frame = currentLabelFrame;
+                pageNumberLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleWidth;
+                pageNumberLabel.translatesAutoresizingMaskIntoConstraints = YES;
+               
+                CGFloat fontSize = (([UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad) ? 19.0f : 16.0f);
+
+                pageNumberLabel.autoresizesSubviews = YES;
+                pageNumberLabel.userInteractionEnabled = NO;
+                pageNumberLabel.contentMode = UIViewContentModeRedraw;
+                pageNumberLabel.textAlignment = NSTextAlignmentCenter;
+                pageNumberLabel.font = [UIFont systemFontOfSize:fontSize];
+                pageNumberLabel.textColor = [UIColor whiteColor];
+                pageNumberLabel.backgroundColor = [UIColor colorWithWhite:0.24f alpha:0.7f];
+                pageNumberLabel.text = [NSString stringWithFormat:labeltemplate, readerView.currentPage.label, (unsigned long)readerView.document.pageCount];
+                
+
+                
+                [pageNumberContainer addSubview:pageNumberLabel];
+
+            
+                [bottomContainer addSubview:thumbnailView];
+                
+                
+                
+               // [thumbnailView.widthAnchor constraintEqualToConstant:scrollwidth].active = YES;
+                bottomContainer.alpha = 0.0;
+                //bottomContainer.hidden = YES;
+                pageNumberContainer.alpha = 0.0;
+
+                
+                [self addSubview:pageNumberContainer];
+
+                [self addSubview:bottomContainer];
+
+                
+                UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(showHideBottomView)];
+                [readerView addGestureRecognizer:tap];
+                [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(PDFViewPageChangedNotification:) name:PDFViewPageChangedNotification object:readerView];
+                readerView.document.delegate = self;
+                readerView.delegate = self;
+
+            }
+       }
+    }
+
 }
 
 
 #pragma mark - Toggle Bottom View
--(void)toggleBottomView {
+-(void)toggleBottomView:(CGFloat)value {
     //NSLog(@"[INFO] %@ toggleBottomView");
 
-    [UIView transitionWithView:bottomContainer
-                      duration:0.3
-                       options:UIViewAnimationOptionTransitionCrossDissolve
-                    animations:^{
-        bottomContainer.hidden = !bottomContainer.hidden;
-                    }
-                    completion:NULL];
+    CGFloat alpha = 1.0;
+    if (bottomContainer.alpha > 0.0){
+        alpha = 0.0;
+    }
+
+
+    if (value == 2.0){
+        alpha = 1.0;
+    }
+    
+    
+    [UIView animateWithDuration:0.3
+              delay: 0.0
+              options: UIViewAnimationOptionCurveEaseInOut
+              animations:^{
+        self->pageNumberContainer.alpha = alpha;
+        self->bottomContainer.alpha = alpha;
+    } completion:nil];
+    
+    
+    
 //    [PDFThumbnailView transitionWithView:thumbnailView
 //                      duration:0.3
 //                       options:UIViewAnimationOptionTransitionCrossDissolve
@@ -248,34 +231,30 @@ NSString *labeltemplate;
 #pragma mark - PDFSelection Delegate
 
 -(void)documentDidBeginDocumentFind:(NSNotification *)notification{
-    self.resultCount = 0;
-if (!self.searchResultArray){
-//    NSLog(@"[INFO] %@ documentDidBeginDocumentFind");
-
-    self.searchResultArray = [[NSMutableArray alloc]init];
-}
-
+   // resultCount = 0;
 }
 -(void)documentDidEndDocumentFind:(NSNotification *)notification
 {
 //    NSLog(@"[INFO] documentDidEndDocumentFind  %i", self.resultCount);
-    [readerView setHighlightedSelections:[self.searchResultArray copy]];
+    [readerView setHighlightedSelections:[searchResultArray copy]];
 
-    NSMutableDictionary *event = [[NSMutableDictionary alloc] init];
+    if ([(TiViewProxy*)self.proxy _hasListeners:@"searchresult"]) {
+        NSMutableDictionary *event = [NSMutableDictionary dictionary];
+        [event setObject:[NSNumber numberWithInt:(int)[[searchResultArray copy] count]] forKey:@"count"];
 
-    [event setValue:[[NSNumber alloc] initWithInt:self.resultCount] forKey:@"results"];
-
-    if ([self.proxy _hasListeners:@"searchresult"]) {
-        [self.proxy fireEvent:@"searchresult" withObject:event];
+        [(TiViewProxy*)self.proxy fireEvent:@"searchresult" withObject:event propagate:NO];
     }
-   // [self.searchResultArray removeAllObjects];
+    [readerView goToSelection:(PDFSelection*)[[searchResultArray copy] objectAtIndex:0]];
+    [self toggleBottomView:2.0];
 }
 
 
 -(void)didMatchString:(PDFSelection *)instance{
 //    NSLog(@"[INFO] %@ didMatchString");
-    self.resultCount = self.resultCount + 1;
-    [self.searchResultArray addObject:instance];
+   // resultCount = resultCount + 1;
+    instance.color = [UIColor yellowColor];
+
+    [searchResultArray addObject:instance];
 }
 
 #pragma mark - PDFViewPageChangedNotification
@@ -297,26 +276,20 @@ if (!self.searchResultArray){
 - (void)search:(NSString*)searchText
 {
 //    NSLog(@"[INFO] %@ search",searchText);
+    [searchResultArray removeAllObjects];
 
+    [self.pdfDocument cancelFindString];
 
-    [readerView.document beginFindString:searchText withOptions:NSCaseInsensitiveSearch];
+    [self.pdfDocument beginFindString:searchText withOptions:NSCaseInsensitiveSearch];
 }
 -(void)showHideBottomView {
-    //NSLog(@"[INFO] %@ toggleBottomView");
-
-    [UIView transitionWithView:pageNumberContainer
-                      duration:0.3
-                       options:UIViewAnimationOptionTransitionCrossDissolve
-                    animations:^{
-                        pageNumberContainer.hidden = !pageNumberContainer.hidden;
-                    }
-                    completion:NULL];
-    [PDFThumbnailView transitionWithView:thumbnailView
-                      duration:0.3
-                       options:UIViewAnimationOptionTransitionCrossDissolve
-                    animations:^{
-                        thumbnailView.hidden = !thumbnailView.hidden;
-                    }
-                    completion:NULL];
+    [self toggleBottomView:1.0];
 }
+
+- (void)resetSearch {
+    [searchResultArray removeAllObjects];
+    [self.pdfDocument cancelFindString];
+    [readerView setHighlightedSelections:nil];
+}
+
 @end

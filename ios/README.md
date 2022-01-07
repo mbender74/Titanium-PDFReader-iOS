@@ -1,6 +1,7 @@
 # PDFReader for iOS (based on Apple PDFKit)
 ## PDF-Reader-View module for Appcelerator Titanium
 
+<img src="./demo.gif" width="293" height="634" alt="Example" />
 
 
 
@@ -18,30 +19,34 @@ Simple iOS View module for Appcelerator Titanium that can display PDF files with
 ```
 or
 ```javascript
-var pdfReader = require('de.marcbender.pdfreader');
-
-
-
-var pdfView = pdfReader.createReader({
-            height: Ti.Platform.displayCaps.platformHeight - 90,
-            width: Ti.Platform.displayCaps.platformWidth,
-            top: 0,
-            left:0,
-            right:0,
-            bottom:0,
-            labeltemplate:'Page'+' %@ of'+' %lu',
-            backgroundColor:'grey',
-            pdf:Ti.Filesystem.getFile( Ti.Filesystem.applicationDataDirectory , "yourfile.pdf" ).resolve(),
+var win = Ti.UI.createWindow({
+	backgroundColor: '#fff'
 });
 
 
-// returns result count - matched strings will be highlighted in the pdf pages
+var  pdfReaderModule = require('de.marcbender.pdfreader');
+
+var pdfView = pdfReaderModule.createReader({
+    height:Ti.UI.FiLL,
+	width:Ti.UI.FiLL,
+	top: 0,
+	left:0,
+	right:0,
+	bottom:0,
+	labeltemplate:'Page'+' %@ '+'from'+' %lu',
+	backgroundColor:'white',
+	pdf:Ti.Filesystem.getFile( Ti.Filesystem.resourcesDirectory , "test.pdf" ).resolve(),
+});
+
 pdfView.addEventListener('searchresult', function (e) {
-        Ti.API.info("RESULTS: " + JSON.stringify(e));
+		Ti.API.info("RESULTS: " +e.count);	
 });
+
+win.add(pdfView);
 
 // searchFuntion - stringvalue
 pdfView.search("searchQueryString");
+
 ```
 
 ### API

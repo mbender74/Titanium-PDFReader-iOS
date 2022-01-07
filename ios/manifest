@@ -2,17 +2,17 @@
 # this is your module manifest and used by Titanium
 # during compilation, packaging, distribution, etc.
 #
-version: 1.0.0
+version: 1.1.0
 apiversion: 2
 architectures: arm64 x86_64
 description: PDFReader
 author: Your Name
 license: Specify your license
 copyright: Copyright (c) 2021 by Your Company
-
+mac:true
 # these should not be edited
 name: PDFReader
 moduleid: de.marcbender.pdfreader
 guid: 5bf94cfb-13d9-478e-8458-7e04f19c2d76
 platform: iphone
-minsdk: 9.0.3.GA
+minsdk: 10.0.0.GA

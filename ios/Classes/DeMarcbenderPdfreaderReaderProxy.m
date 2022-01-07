@@ -18,8 +18,12 @@
 #pragma mark Public APIs
 
 - (void)search:(id)value {
-
     [[self readerView] search:[TiUtils stringValue:[value objectAtIndex:0]]];
 }
+
+- (void)resetSearch:(id)value {
+    [[self readerView] resetSearch];
+}
+
 
 @end
